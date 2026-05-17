@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cheshta Saluja | Legal Dossier</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        archival: {
+                            50: '#f8f8f8',
+                            100: '#e8e8e8',
+                            200: '#d3d3d3',
+                            800: '#2c2c2c',
+                            900: '#1a1a1a'
+                        }
+                    },
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --archival-ink: #b91c1c; /* Dried blood red */
+        }
+        
+        body {
+            cursor: none; /* Hide default cursor for crosshair */
+            background-color: #f8fafc; /* Crisp, clean, bright white background */
+            transition: background-color 1s ease, color 1s ease;
+        }
+
+        /* Microfilm Noise Texture */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.2;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: multiply;
+        }
+
+        .focus-active {
+            background-color: #0f1115;
+            color: #d1d5db;
+        }
+
+        .focus-active .noise-overlay {
+            opacity: 0.15;
+            mix-blend-mode: screen;
+        }
+
+        /* Legal Folder Aesthetics */
+        .legal-border {
+            border: 3px double #e2e8f0;
+        }
+        .focus-active .legal-border {
+            border-color: #3f3f46;
+        }
+
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes stamp { 
+            0% { opacity: 0; transform: scale(3) rotate(0deg); } 
+            100% { opacity: 1; transform: scale(1) rotate(-12deg); } 
+        }
+        @keyframes flash { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2.5); opacity: 0; } }
+        @keyframes fade-out { 0% { opacity: 1; transform: scale(1); } 10% { transform: scale(1.1); } 100% { opacity: 0; transform: scale(0.9); } }
+        
+        /* New Recoil Screen Shake */
+        @keyframes screenShake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            20% { transform: translate(-3px, 3px) rotate(-0.5deg); }
+            40% { transform: translate(3px, -2px) rotate(0.5deg); }
+            60% { transform: translate(-2px, -3px) rotate(-0.2deg); }
+            80% { transform: translate(2px, 2px) rotate(0.2deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+        .shake-active { animation: screenShake 0.15s cubic-bezier(.36,.07,.19,.97) both; }
+        
+        .animate-stamp { animation: stamp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .animate-fadeIn { animation: fadeIn 0.2s ease-out forwards; }
+
+        .redacted {
+            background-color: #1f2937;
+            color: transparent;
+            border-radius: 2px;
+            cursor: none;
+            transition: all 0.3s ease;
+        }
+        .redacted.revealed {
+            background-color: transparent;
+            color: #ef4444;
+            text-shadow: 0 0 5px rgba(239, 68, 68, 0.5);
+        }
+
+        /* Magnetic Button Transition */
+        .magnetic {
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+    </style>
+</head>
+<body class="antialiased text-zinc-900 overflow-hidden">
+
+    <div id="boot-screen" class="fixed inset-0 bg-zinc-950 z-50 flex flex-col justify-center items-start p-12 transition-opacity duration-700">
+        <div id="boot-content" class="relative w-full max-w-2xl mx-auto transition-opacity duration-500">
+            <i class="ph ph-shield-check text-6xl text-amber-600 animate-pulse mb-8"></i>
+            <div id="boot-text-container" class="space-y-2 text-amber-500 font-mono"></div>
+            <div id="boot-cursor" class="w-3 h-5 bg-amber-500 animate-ping mt-4"></div>
+        </div>
+    </div>
+
+    <!-- NEW HERO INTRO SCREEN -->
+    <div id="hero-intro" class="fixed inset-0 z-[55] flex items-center justify-center bg-zinc-950 opacity-0 pointer-events-none transition-opacity duration-1000 hidden">
+        <div class="text-center">
+            <h1 id="hero-text" class="text-white font-serif font-black text-6xl md:text-8xl lg:text-9xl uppercase tracking-[0.3em] transform scale-150 blur-xl transition-all duration-[1500ms] ease-out">
+                Cheshta<br/><span class="text-red-600">Saluja</span>
+            </h1>
+            <p id="hero-sub" class="text-zinc-500 font-mono text-sm tracking-[0.5em] mt-6 opacity-0 transition-opacity duration-1000 delay-1000">ADVOCATE & MARKSMAN</p>
+        </div>
+    </div>
+
+    <!-- Microfilm Noise -->
+    <div class="noise-overlay"></div>
+
+    <div id="cursor-primary" class="fixed pointer-events-none z-[60] -translate-x-1/2 -translate-y-1/2 mix-blend-difference transition-transform duration-75">
+        <i class="ph ph-crosshair text-3xl text-white opacity-80"></i>
+    </div>
+    <div id="cursor-laser" class="fixed pointer-events-none z-[60] w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,1)] -translate-x-1/2 -translate-y-1/2 transition-all duration-100 ease-out"></div>
+    <div id="coord-display" class="fixed pointer-events-none z-[60] text-[8px] font-mono text-red-500 ml-4 mt-4 transition-all duration-75"></div>
+
+    <!-- Focus Mode Vignette -->
+    <div id="focus-vignette" class="fixed inset-0 pointer-events-none z-30 opacity-0 transition-opacity duration-1000" style="background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.95) 100%);">
+        <div class="absolute top-1/2 left-0 w-full h-[1px] bg-red-500/20"></div>
+        <div class="absolute left-1/2 top-0 w-[1px] h-full bg-red-500/20"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 border border-red-500/10 rounded-full"></div>
+    </div>
+
+    <div id="main-app" class="h-screen w-full opacity-0 pointer-events-none transition-opacity duration-1000 relative overflow-y-auto overflow-x-hidden">
+        
+        <!-- Parallax Background Elements -->
+        <div id="parallax-bg" class="fixed inset-0 pointer-events-none z-0 flex flex-wrap gap-24 justify-center items-center opacity-5 transition-transform duration-100"></div>
+
+        <nav class="relative z-20 p-6 flex justify-between items-center border-b border-zinc-200 backdrop-blur-md sticky top-0 bg-white/90 focus-active-nav transition-colors duration-500 shadow-sm">
+            <div class="flex items-center space-x-4">
+                <div class="relative w-10 h-10 flex items-center justify-center bg-zinc-900 border border-zinc-700 rounded shadow-md">
+                    <i class="ph ph-gavel text-amber-500 text-xl"></i>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-serif font-bold tracking-widest text-lg uppercase text-zinc-900 nav-title transition-colors">Cheshta Saluja</span>
+                    <span class="text-[10px] text-red-600 tracking-[0.3em] font-mono font-bold">Advocate & Marksman</span>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 md:gap-6 z-50">
+                <a href="Cheshta_Saluja_CV.pdf" download class="magnetic hidden sm:flex items-center space-x-2 px-4 py-2 rounded transition-all duration-300 border border-zinc-300 bg-zinc-50 shadow-sm hover:border-red-500 hover:bg-white text-zinc-600 hover:text-red-600 text-xs font-bold tracking-widest uppercase doc-btn">
+                    <i class="ph ph-file-pdf text-lg"></i>
+                    <span>Export Dossier</span>
+                </a>
+                <button id="focus-btn" class="magnetic relative overflow-hidden flex items-center space-x-2 px-6 py-2 rounded transition-all duration-300 border border-zinc-300 bg-zinc-50 shadow-sm hover:border-red-500 hover:bg-white">
+                    <i class="ph ph-crosshair text-zinc-600 focus-icon"></i>
+                    <span class="text-xs font-bold tracking-widest uppercase focus-text text-zinc-800 transition-colors">Lock Focus</span>
+                </button>
+            </div>
+        </nav>
+
+        <main class="relative z-10 max-w-7xl mx-auto p-6 md:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 mb-20">
+            
+            <div class="lg:col-span-5 space-y-8 relative">
+                <div class="bg-white border-2 border-zinc-200 p-8 relative overflow-hidden shadow-xl legal-border dossier-card transition-colors duration-500 rounded-sm">
+                    <div id="declassified-stamp" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-red-600/20 font-serif font-black text-6xl md:text-8xl rotate-12 opacity-0 pointer-events-none mix-blend-multiply border-4 border-red-600/20 p-4">
+                        DECLASSIFIED
+                    </div>
+
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-red-50 border border-red-200 text-red-700 font-bold text-[10px] font-mono rounded-sm uppercase tracking-widest badge-bg transition-colors">
+                            <i class="ph ph-shield-check"></i> ACWL-2029
+                        </div>
+                        <span class="text-[10px] font-mono text-zinc-400 font-bold tracking-widest border-b border-zinc-200 file-no transition-colors">FILE NO: GOV-CS-29</span>
+                    </div>
+                    
+                    <h1 class="text-5xl md:text-6xl font-serif font-black leading-none tracking-tighter mb-4 text-zinc-900 title-text transition-colors">
+                        PRECISION <br/>
+                        <span class="flex items-center gap-4 mt-2">
+                            <span class="text-zinc-300 focus-amp transition-colors">&</span> POWER.
+                        </span>
+                    </h1>
+
+                    <div class="relative pl-6 py-2 border-l-2 border-red-500 mt-6 bg-gradient-to-r from-red-500/5 to-transparent">
+                        <p class="text-sm leading-relaxed text-zinc-600 font-mono desc-text transition-colors">
+                            <strong class="text-zinc-900 block mb-2 font-serif text-lg tracking-wide subtitle-text transition-colors">"Where the Gavel strikes the Target."</strong>
+                            A B.A.L.L.B. scholar forging a path where the iron discipline of a <span class="redacted" onclick="this.classList.add('revealed')">10m Air Pistol marksman</span> collides with the intellectual rigor of <span class="redacted" onclick="this.classList.add('revealed')">Constitutional Law</span>.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="bg-white border border-zinc-200 p-6 relative shadow-lg skills-card transition-colors duration-500 rounded-sm">
+                    <div class="flex justify-between items-center mb-6 border-b border-zinc-100 pb-2 hr-skills transition-colors">
+                        <h3 class="font-serif font-bold tracking-widest uppercase text-xs text-zinc-500 flex items-center gap-2 skills-title transition-colors">
+                            <i class="ph ph-hexagon text-red-600"></i> Tactical Matrix
+                        </h3>
+                        <button id="decrypt-btn" onclick="toggleAllSkills()" class="magnetic bg-red-50 border border-red-200 text-red-600 text-[10px] font-mono px-3 py-1 rounded shadow-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition-all uppercase tracking-widest font-bold">
+                            Decrypt All
+                        </button>
+                    </div>
+                    <div id="skills-container" class="space-y-4"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-7">
+                <div class="flex gap-2 mb-8" id="tab-nav">
+                    <!-- Tabs generated by JS -->
+                </div>
+                
+                <div class="relative min-h-[500px]">
+                    <div id="tab-content" class="animate-fadeIn">
+                        <!-- Content generated by JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="fixed bottom-0 w-full border-t border-zinc-200 bg-white/90 backdrop-blur-md text-[10px] sm:text-xs font-mono text-zinc-500 py-3 px-6 flex justify-between items-center z-20 footer-bar transition-colors">
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 font-bold text-zinc-700 sys-text transition-colors">
+                    SYS.STATUS: <span class="text-green-600 border border-green-200 px-2 py-0.5 bg-green-50 rounded-sm status-badge transition-colors">ONLINE</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="font-bold text-zinc-700 comm-text transition-colors hidden md:inline">DIR.COMM: CHESHTA SALUJA</span>
+                <div class="flex items-center gap-2">
+                    <a href="mailto:email@example.com" class="magnetic flex items-center gap-1.5 px-3 py-1 bg-red-50 border border-red-200 text-red-700 hover:bg-red-600 hover:text-white rounded shadow-sm text-[10px] font-bold tracking-widest uppercase transition-all secure-btn">
+                        <i class="ph ph-envelope-simple text-sm"></i>
+                        <span class="hidden sm:inline">Secure Mail</span>
+                    </a>
+                    <a href="https://linkedin.com/in/cheshtasaluja" target="_blank" class="magnetic flex items-center gap-1.5 px-3 py-1 bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-600 hover:text-white rounded shadow-sm text-[10px] font-bold tracking-widest uppercase transition-all secure-btn-alt">
+                        <i class="ph ph-linkedin-logo text-sm"></i>
+                        <span class="hidden sm:inline">Network Link</span>
+                    </a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // State Variables
+        let isBooting = true;
+        let focusMode = false;
+        let skillsDecrypted = false;
+        let activeTab = 'legal';
+        let mouseX = 0, mouseY = 0;
+        let delayedMouseX = 0, delayedMouseY = 0;
+        let bootInterval;
+
+        // Data Models
+        const skillsData = [
+            { name: "Constitutional Law", val: 95 },
+            { name: "Persuasive Debating", val: 98 },
+            { name: "Fluent English", val: 100 },
+            { name: "Under-Pressure Focus", val: 100 },
+            { name: "Legal Drafting", val: 90 }
+        ];
+
+        const tabsData = {
+            legal: {
+                id: 'legal', title: "Exhibit A: Legal Arsenal", icon: "ph-scales",
+                items: [
+                    { role: "Legal Intern", entity: "Supreme Court of India", date: "Recent", desc: "Observed apex-level constitutional debates. Assisted in drafting and researching complex factual matrices. Gained first-hand exposure to the highest tier of the Indian Judicial System." },
+                    { role: "Participant & Debater", entity: "National Moot Court Competition", date: "Recent", desc: "Drafted comprehensive legal memorials. Delivered sharp, logical oral arguments before judging panels. Demonstrated exceptional command over legal vernacular." }
+                ]
+            },
+            marksman: {
+                id: 'marksman', title: "Exhibit B: Caliber & Focus", icon: "ph-target",
+                items: [
+                    { role: "Professional Athlete", entity: "10m Air Pistol Shooting", date: "Present", desc: "Cultivating elite-level concentration, mental fortitude, and precision. The ability to block out external noise directly translates to hyper-focus during intensive research." },
+                    { role: "Martial Artist", entity: "Judo", date: "2 Years", desc: "Underwent rigorous physical and mental conditioning. Developed unparalleled discipline, resilience, and strategic combat thinking." }
+                ]
+            },
+            strategy: {
+                id: 'strategy', title: "Exhibit C: Strategic Acumen", icon: "ph-lightning",
+                items: [
+                    { role: "Delegate", entity: "AI Impact Summit 2026", date: "Feb 2026", desc: "Navigated the intersection of future technology and legal frameworks. Enhanced high-level networking skills, confidently engaging with industry leaders." }
+                ]
+            }
+        };
+
+        const bootSequence = [
+            "ESTABLISHING SECURE CONNECTION...",
+            "CALIBRATING SCALES OF JUSTICE...",
+            "LOADING 10MM AMMUNITION...",
+            "ACCESSING SUPREME COURT ARCHIVES...",
+            "SYNCING MOOT COURT MATRICES...",
+            "TARGET ACQUIRED.",
+            "ACCESS GRANTED."
+        ];
+        let bootStep = 0;
+
+        function playImpactSound() {
+            // Here is a working online sound effect from Google's free sound library.
+            // Replace this URL with your own local file (e.g., 'custom_gunshot.mp3') when you are ready!
+            const customSound = new Audio('https://actions.google.com/sounds/v1/weapons/smg_firing_single_shot.ogg');
+            customSound.volume = 0.4; // Slightly lowered volume so it isn't too loud
+            
+            customSound.play().catch(e => {
+                // Browsers sometimes block audio until the user interacts with the page, this ignores that harmless error
+                console.log("Audio play prevented:", e);
+            });
+        }
+
+    function renderBootText() {
+        const bootContainer = document.getElementById('boot-text-container');
+        if (!bootContainer) {
+            if (bootInterval) clearInterval(bootInterval);
+            return; 
+        }
+
+        if (bootStep < bootSequence.length) {
+            const text = bootSequence[bootStep];
+            const isLast = bootStep === bootSequence.length - 1;
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-3 text-xs md:text-sm font-mono animate-fadeIn';
+            
+            const timeStr = new Date().toISOString().split('T')[1].slice(0,-1);
+            div.innerHTML = `<span class="text-zinc-600">[${timeStr}]</span> <span class="${isLast ? 'text-green-500 font-bold' : 'text-amber-600/80'}">${text}</span>`;
+            
+            bootContainer.appendChild(div);
+            bootStep++;
+        } else {
+            clearInterval(bootInterval);
+            const cursor = document.getElementById('boot-cursor');
+            if (cursor) cursor.style.display = 'none';
+            
+            // --- NEW CINEMATIC ANIMATION LOGIC ---
+            setTimeout(() => {
+                const bootContent = document.getElementById('boot-content');
+                if(bootContent) bootContent.style.opacity = '0'; // Fade out terminal text
+
+                setTimeout(() => {
+                    const heroIntro = document.getElementById('hero-intro');
+                    const heroText = document.getElementById('hero-text');
+                    const heroSub = document.getElementById('hero-sub');
+                    
+                    if(heroIntro) {
+                        heroIntro.classList.remove('hidden');
+                        // Force reflow to ensure CSS transitions run
+                        void heroIntro.offsetWidth;
+                        
+                        heroIntro.classList.remove('opacity-0');
+                        heroText.classList.remove('scale-150', 'blur-xl');
+                        heroText.classList.add('scale-100', 'blur-none');
+                        heroSub.classList.remove('opacity-0');
+                    }
+                    
+                    // Hold the giant name on screen, then transition to app
+                    setTimeout(() => {
+                        if(heroIntro) heroIntro.classList.add('opacity-0');
+                        
+                        const bootScreen = document.getElementById('boot-screen');
+                        const mainApp = document.getElementById('main-app');
+                        const stamp = document.getElementById('declassified-stamp');
+                        
+                        if(bootScreen) {
+                            bootScreen.classList.add('opacity-0');
+                            setTimeout(() => {
+                                bootScreen.remove();
+                                if(heroIntro) heroIntro.remove();
+                            }, 1000);
+                        }
+                        if(mainApp) {
+                            mainApp.classList.remove('opacity-0', 'pointer-events-none');
+                            isBooting = false;
+                            
+                            setTimeout(() => {
+                                if(stamp) stamp.classList.add('animate-stamp');
+                                initParallax();
+                            }, 500);
+                        }
+                    }, 2500); // Time to look at the giant name
+                    
+                }, 500); // Delay after fading out terminal
+            }, 400); // Short pause after "ACCESS GRANTED"
+        }
+    }
+
+    function initSkills() {
+            const skillsContainer = document.getElementById('skills-container');
+            if(!skillsContainer) return; 
+            skillsContainer.innerHTML = ''; 
+
+            skillsData.forEach(skill => {
+                const skillDiv = document.createElement('div');
+                skillDiv.className = 'relative group cursor-none skill-row';
+                
+                let barsHtml = '';
+                for(let i=0; i<10; i++) {
+                    barsHtml += `<div class="flex-1 rounded-sm border h-3 transition-all duration-300 skill-bar bg-zinc-200 border-zinc-300" data-active="${i < skill.val/10 ? 'true' : 'false'}" style="transition-delay: ${i*30}ms"></div>`;
+                }
+
+                skillDiv.innerHTML = `
+                    <div class="flex justify-between text-[10px] font-mono mb-2 uppercase tracking-wider font-bold">
+                        <span class="text-zinc-600 name-span transition-colors">${skill.name}</span>
+                        <span class="text-zinc-400 val-span transition-colors">${skill.val === 100 ? 'MAX' : skill.val}</span>
+                    </div>
+                    <div class="flex gap-1 h-3 relative">
+                        ${barsHtml}
+                        <div class="absolute top-1/2 -right-12 w-screen h-px bg-red-500/50 z-[-1] opacity-0 transition-opacity duration-300 laser-line"></div>
+                    </div>
+                `;
+
+                skillDiv.addEventListener('mouseenter', () => activateSkillRow(skillDiv));
+                skillDiv.addEventListener('mouseleave', () => { if (!skillsDecrypted) deactivateSkillRow(skillDiv); });
+                skillsContainer.appendChild(skillDiv);
+            });
+        }
+
+        function activateSkillRow(skillDiv) {
+            skillDiv.querySelector('.name-span').classList.replace('text-zinc-600', 'text-red-600');
+            skillDiv.querySelector('.name-span').classList.replace('text-zinc-400', 'text-red-500'); 
+            const bars = skillDiv.querySelectorAll('.skill-bar');
+            bars.forEach(bar => {
+                if(bar.getAttribute('data-active') === 'true') {
+                    bar.classList.replace('bg-zinc-200', 'bg-red-500');
+                    bar.classList.replace('bg-zinc-700', 'bg-red-500');
+                    bar.classList.replace('border-zinc-300', 'border-red-400');
+                    bar.classList.replace('border-zinc-600', 'border-red-400');
+                    bar.style.boxShadow = '0 0 8px rgba(239,68,68,0.6)';
+                }
+            });
+            skillDiv.querySelector('.laser-line').style.opacity = '1';
+        }
+
+        function deactivateSkillRow(skillDiv) {
+            const isDark = document.body.classList.contains('focus-active');
+            
+            const nameSpan = skillDiv.querySelector('.name-span');
+            nameSpan.className = `name-span transition-colors font-bold ${isDark ? 'text-zinc-400' : 'text-zinc-600'}`;
+            
+            const bars = skillDiv.querySelectorAll('.skill-bar');
+            bars.forEach(bar => {
+                bar.className = `flex-1 rounded-sm border h-3 transition-all duration-300 skill-bar ${isDark ? 'bg-zinc-700 border-zinc-600' : 'bg-zinc-200 border-zinc-300'}`;
+                bar.style.boxShadow = 'none';
+            });
+            skillDiv.querySelector('.laser-line').style.opacity = '0';
+        }
+
+        window.toggleAllSkills = function() {
+            skillsDecrypted = !skillsDecrypted;
+            const btn = document.getElementById('decrypt-btn');
+            
+            if (skillsDecrypted) {
+                btn.className = 'magnetic bg-red-600 border border-red-500 text-white text-[10px] font-mono px-3 py-1 rounded shadow-[0_0_10px_rgba(239,68,68,0.6)] transition-all uppercase tracking-widest font-bold';
+                btn.innerText = 'SYS.OVERRIDE ACTIVE';
+                document.querySelectorAll('.skill-row').forEach(row => activateSkillRow(row));
+            } else {
+                const isDark = document.body.classList.contains('focus-active');
+                if (isDark) {
+                     btn.className = 'magnetic bg-red-600/10 border border-red-500/50 text-red-500 text-[10px] font-mono px-3 py-1 rounded shadow-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition-all uppercase tracking-widest font-bold';
+                } else {
+                     btn.className = 'magnetic bg-red-50 border border-red-200 text-red-600 text-[10px] font-mono px-3 py-1 rounded shadow-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition-all uppercase tracking-widest font-bold';
+                }
+                btn.innerText = 'DECRYPT ALL';
+                document.querySelectorAll('.skill-row').forEach(row => deactivateSkillRow(row));
+            }
+        };
+
+        function renderTabs() {
+            const nav = document.getElementById('tab-nav');
+            const content = document.getElementById('tab-content');
+            if(!nav || !content) return; 
+
+            // Render Nav
+            nav.innerHTML = Object.values(tabsData).map(tab => `
+                <button onclick="switchTab('${tab.id}')" class="magnetic flex-1 py-4 text-[10px] md:text-xs font-bold tracking-widest uppercase flex flex-col justify-center items-center gap-2 transition-all duration-300 border-t-2 bg-white hover:bg-zinc-50 shadow-sm ${activeTab === tab.id ? 'border-red-600 text-red-600 bg-red-50/30' : 'border-zinc-200 text-zinc-400 hover:text-zinc-600'} tab-btn" data-id="${tab.id}">
+                    <i class="ph ${tab.icon} text-xl ${activeTab === tab.id ? 'animate-pulse' : ''}"></i>
+                    <span class="hidden sm:block font-mono">${tab.title}</span>
+                </button>
+            `).join('');
+
+            // Theme fixes for tabs inside Focus Mode
+            if (document.body.classList.contains('focus-active')) {
+                document.querySelectorAll('.tab-btn').forEach(btn => {
+                    btn.classList.remove('bg-white', 'hover:bg-zinc-50', 'bg-red-50/30');
+                    btn.classList.add('bg-zinc-900/50', 'hover:bg-zinc-800');
+                    if(btn.dataset.id !== activeTab) {
+                        btn.classList.replace('border-zinc-200', 'border-zinc-800');
+                    } else {
+                        btn.classList.replace('text-red-600', 'text-red-500');
+                    }
+                });
+            }
+
+            initMagnetic();
+
+            // Render Content
+            const activeData = tabsData[activeTab];
+            content.innerHTML = `
+                <div class="flex items-center gap-4 mb-8">
+                    <h2 class="text-3xl font-serif font-black uppercase tracking-tight title-text text-zinc-800 transition-colors">${activeData.title}</h2>
+                    <div class="h-px bg-zinc-200 flex-grow hr-line transition-colors"></div>
+                </div>
+                <div class="space-y-6">
+                    ${activeData.items.map((item, i) => `
+                        <div class="group relative bg-white border border-zinc-200 p-6 md:p-8 hover:border-zinc-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl item-card shadow-sm" style="animation: fadeIn 0.3s ease-out ${i*0.1}s forwards; opacity: 0;">
+                            <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-transparent group-hover:border-red-500 transition-colors"></div>
+                            <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-transparent group-hover:border-red-500 transition-colors"></div>
+                            <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-transparent group-hover:border-red-500 transition-colors"></div>
+                            <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-transparent group-hover:border-red-500 transition-colors"></div>
+
+                            <div class="flex flex-col md:flex-row md:justify-between md:items-start mb-4 gap-4 relative z-10">
+                                <div>
+                                    <h3 class="text-xl md:text-2xl font-bold text-zinc-900 group-hover:text-red-700 transition-colors flex items-center gap-3 item-title">
+                                        ${item.role} 
+                                    </h3>
+                                    <p class="text-zinc-500 font-mono text-sm mt-1 flex items-center gap-2 font-bold item-subtitle">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-zinc-300 group-hover:bg-amber-500 transition-colors dot-indicator"></span>
+                                        ${item.entity}
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2 border border-zinc-200 bg-zinc-50 px-3 py-1.5 date-badge transition-colors rounded-sm">
+                                    <div class="w-2 h-2 rounded-full bg-red-600 animate-pulse"></div>
+                                    <span class="text-[10px] font-mono text-zinc-500 uppercase tracking-widest font-bold date-text">
+                                        ${item.date}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="mt-6 leading-relaxed text-zinc-600 relative z-10 text-sm md:text-base font-serif border-l-2 border-zinc-200 pl-4 group-hover:border-red-400 transition-colors item-desc typewriter-target" data-text="${item.desc}">
+                                <!-- Text will be typed by JS -->
+                            </p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Typewriter / Stenographer Effect Logic
+            setTimeout(() => {
+                document.querySelectorAll('.typewriter-target').forEach((el, index) => {
+                    const fullText = el.getAttribute('data-text');
+                    el.innerHTML = '<span class="typing-text"></span><span class="animate-pulse bg-red-500 w-1.5 h-4 inline-block ml-1 align-middle opacity-80 cursor-block transition-opacity"></span>';
+                    const textContainer = el.querySelector('.typing-text');
+                    const cursor = el.querySelector('.cursor-block');
+                    
+                    let i = 0;
+                    // Stagger the typing of each item card slightly
+                    setTimeout(() => {
+                        const typingInterval = setInterval(() => {
+                            if (i < fullText.length) {
+                                textContainer.textContent += fullText.charAt(i);
+                                i++;
+                            } else {
+                                clearInterval(typingInterval);
+                                // Fade out cursor block when typing finishes
+                                if (cursor) cursor.style.opacity = '0';
+                            }
+                        }, 12); // Stenographer speed (very fast)
+                    }, index * 400);
+                });
+            }, 50);
+
+            // Re-apply theme changes to new content if Focus is active
+            if(document.body.classList.contains('focus-active')) applyDarkClasses();
+        }
+
+        window.switchTab = function(id) {
+            activeTab = id;
+            renderTabs();
+        }
+
+        document.getElementById('focus-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            focusMode = !focusMode;
+            document.body.classList.toggle('focus-active');
+            
+            const btn = document.getElementById('focus-btn');
+            const vignette = document.getElementById('focus-vignette');
+            const decryptBtn = document.getElementById('decrypt-btn');
+            
+            if (focusMode) {
+                btn.innerHTML = `<i class="ph ph-crosshair text-red-500 animate-spin-slow"></i><span class="text-xs font-bold tracking-widest uppercase text-red-400 transition-colors">Release Focus</span>`;
+                btn.className = 'magnetic relative overflow-hidden flex items-center space-x-2 px-6 py-2 rounded transition-all duration-300 border border-red-500 bg-red-900/20 shadow-[0_0_15px_rgba(239,68,68,0.3)]';
+                vignette.style.opacity = '1';
+                
+                if(!skillsDecrypted && decryptBtn) {
+                    decryptBtn.className = 'magnetic bg-red-600/10 border border-red-500/50 text-red-500 text-[10px] font-mono px-3 py-1 rounded shadow-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition-all uppercase tracking-widest font-bold';
+                }
+                applyDarkClasses();
+            } else {
+                btn.innerHTML = `<i class="ph ph-crosshair text-zinc-600"></i><span class="text-xs font-bold tracking-widest uppercase text-zinc-800 transition-colors">Lock Focus</span>`;
+                btn.className = 'magnetic relative overflow-hidden flex items-center space-x-2 px-6 py-2 rounded transition-all duration-300 border border-zinc-300 bg-zinc-50 shadow-sm hover:border-red-500 hover:bg-white';
+                vignette.style.opacity = '0';
+                
+                if(!skillsDecrypted && decryptBtn) {
+                     decryptBtn.className = 'magnetic bg-red-50 border border-red-200 text-red-600 text-[10px] font-mono px-3 py-1 rounded shadow-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition-all uppercase tracking-widest font-bold';
+                }
+                applyLightClasses();
+            }
+            if(!skillsDecrypted) document.querySelectorAll('.skill-row').forEach(row => deactivateSkillRow(row));
+        });
+
+        function applyDarkClasses() {
+            document.querySelector('.nav-title').classList.replace('text-zinc-900', 'text-white');
+            document.querySelector('.focus-active-nav').classList.replace('bg-white/90', 'bg-[#0f1115]/80');
+            document.querySelector('.focus-active-nav').classList.replace('border-zinc-200', 'border-zinc-800/50');
+            
+            document.querySelector('.dossier-card').classList.replace('bg-white', 'bg-zinc-900/50');
+            document.querySelector('.dossier-card').classList.replace('border-zinc-200', 'border-zinc-700');
+            document.querySelector('.badge-bg').classList.replace('bg-red-50', 'bg-red-900/20');
+            document.querySelector('.badge-bg').classList.replace('border-red-200', 'border-red-500/30');
+            document.querySelector('.file-no').classList.replace('text-zinc-400', 'text-zinc-500');
+            document.querySelector('.file-no').classList.replace('border-zinc-200', 'border-zinc-700');
+            
+            document.querySelector('.title-text').classList.replace('text-zinc-900', 'text-white');
+            document.querySelector('.title-text').classList.replace('text-zinc-800', 'text-zinc-100');
+            document.querySelector('.focus-amp').classList.replace('text-zinc-300', 'text-red-500');
+            document.querySelector('.subtitle-text').classList.replace('text-zinc-900', 'text-zinc-200');
+            document.querySelector('.desc-text').classList.replace('text-zinc-600', 'text-zinc-400');
+            
+            document.querySelector('.skills-card').classList.replace('bg-white', 'bg-zinc-900/30');
+            document.querySelector('.skills-card').classList.replace('border-zinc-200', 'border-zinc-800');
+            document.querySelector('.hr-skills').classList.replace('border-zinc-100', 'border-zinc-800');
+            document.querySelector('.skills-title').classList.replace('text-zinc-500', 'text-zinc-400');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.replace('bg-white', 'bg-zinc-900/50');
+                btn.classList.replace('hover:bg-zinc-50', 'hover:bg-zinc-800');
+                btn.classList.replace('bg-red-50/30', 'bg-transparent');
+                
+                if(btn.dataset.id !== activeTab) {
+                    btn.classList.replace('border-zinc-200', 'border-zinc-800');
+                    btn.classList.replace('text-zinc-400', 'text-zinc-600');
+                } else {
+                    btn.classList.replace('text-red-600', 'text-red-500');
+                }
+            });
+            
+            document.querySelectorAll('.hr-line').forEach(el => el.classList.replace('bg-zinc-200', 'bg-zinc-800'));
+            
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.classList.replace('bg-white', 'bg-zinc-900/40');
+                card.classList.replace('border-zinc-200', 'border-zinc-800');
+            });
+            document.querySelectorAll('.item-title').forEach(el => el.classList.replace('text-zinc-900', 'text-zinc-100'));
+            document.querySelectorAll('.item-subtitle').forEach(el => el.classList.replace('text-zinc-500', 'text-zinc-400'));
+            document.querySelectorAll('.dot-indicator').forEach(el => el.classList.replace('bg-zinc-300', 'bg-zinc-600'));
+            document.querySelectorAll('.date-badge').forEach(el => {
+                el.classList.replace('bg-zinc-50', 'bg-zinc-800/50');
+                el.classList.replace('border-zinc-200', 'border-zinc-700');
+            });
+            document.querySelectorAll('.date-text').forEach(el => el.classList.replace('text-zinc-500', 'text-zinc-400'));
+            document.querySelectorAll('.item-desc').forEach(el => {
+                el.classList.replace('text-zinc-600', 'text-zinc-400');
+                el.classList.replace('border-zinc-200', 'border-zinc-700');
+            });
+            
+            document.querySelector('.footer-bar').classList.replace('bg-white/90', 'bg-[#0f1115]/90');
+            document.querySelector('.footer-bar').classList.replace('border-zinc-200', 'border-zinc-800');
+            document.querySelector('.sys-text').classList.replace('text-zinc-700', 'text-zinc-300');
+            document.querySelector('.status-badge').classList.replace('bg-green-50', 'bg-green-500/10');
+            document.querySelector('.status-badge').classList.replace('border-green-200', 'border-green-500/30');
+            document.querySelector('.comm-text').classList.replace('text-zinc-700', 'text-zinc-400');
+            
+            const docBtn = document.querySelector('.doc-btn');
+            if(docBtn) {
+                docBtn.classList.replace('bg-zinc-50', 'bg-zinc-900/50');
+                docBtn.classList.replace('border-zinc-300', 'border-zinc-700');
+                docBtn.classList.replace('text-zinc-600', 'text-zinc-400');
+            }
+            
+            const secureBtn = document.querySelector('.secure-btn');
+            if(secureBtn) {
+                secureBtn.classList.replace('bg-red-50', 'bg-red-900/20');
+                secureBtn.classList.replace('border-red-200', 'border-red-500/30');
+            }
+            
+            const secureBtnAlt = document.querySelector('.secure-btn-alt');
+            if(secureBtnAlt) {
+                secureBtnAlt.classList.replace('bg-blue-50', 'bg-blue-900/20');
+                secureBtnAlt.classList.replace('border-blue-200', 'border-blue-500/30');
+            }
+        }
+
+        function applyLightClasses() {
+            document.querySelector('.nav-title').classList.replace('text-white', 'text-zinc-900');
+            document.querySelector('.focus-active-nav').classList.replace('bg-[#0f1115]/80', 'bg-white/90');
+            document.querySelector('.focus-active-nav').classList.replace('border-zinc-800/50', 'border-zinc-200');
+            
+            document.querySelector('.dossier-card').classList.replace('bg-zinc-900/50', 'bg-white');
+            document.querySelector('.dossier-card').classList.replace('border-zinc-700', 'border-zinc-200');
+            document.querySelector('.badge-bg').classList.replace('bg-red-900/20', 'bg-red-50');
+            document.querySelector('.badge-bg').classList.replace('border-red-500/30', 'border-red-200');
+            document.querySelector('.file-no').classList.replace('text-zinc-500', 'text-zinc-400');
+            document.querySelector('.file-no').classList.replace('border-zinc-700', 'border-zinc-200');
+            
+            document.querySelector('.title-text').classList.replace('text-white', 'text-zinc-900');
+            document.querySelector('.title-text').classList.replace('text-zinc-100', 'text-zinc-800');
+            document.querySelector('.focus-amp').classList.replace('text-red-500', 'text-zinc-300');
+            document.querySelector('.subtitle-text').classList.replace('text-zinc-200', 'text-zinc-900');
+            document.querySelector('.desc-text').classList.replace('text-zinc-400', 'text-zinc-600');
+            
+            document.querySelector('.skills-card').classList.replace('bg-zinc-900/30', 'bg-white');
+            document.querySelector('.skills-card').classList.replace('border-zinc-800', 'border-zinc-200');
+            document.querySelector('.hr-skills').classList.replace('border-zinc-800', 'border-zinc-100');
+            document.querySelector('.skills-title').classList.replace('text-zinc-400', 'text-zinc-500');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.replace('bg-zinc-900/50', 'bg-white');
+                btn.classList.replace('hover:bg-zinc-800', 'hover:bg-zinc-50');
+                
+                if(btn.dataset.id !== activeTab) {
+                    btn.classList.replace('border-zinc-800', 'border-zinc-200');
+                    btn.classList.replace('text-zinc-600', 'text-zinc-400');
+                } else {
+                    btn.classList.replace('text-red-500', 'text-red-600');
+                    btn.classList.add('bg-red-50/30');
+                }
+            });
+            
+            document.querySelectorAll('.hr-line').forEach(el => el.classList.replace('bg-zinc-800', 'bg-zinc-200'));
+            
+            document.querySelectorAll('.item-card').forEach(card => {
+                card.classList.replace('bg-zinc-900/40', 'bg-white');
+                card.classList.replace('border-zinc-800', 'border-zinc-200');
+            });
+            document.querySelectorAll('.item-title').forEach(el => el.classList.replace('text-zinc-100', 'text-zinc-900'));
+            document.querySelectorAll('.item-subtitle').forEach(el => el.classList.replace('text-zinc-400', 'text-zinc-500'));
+            document.querySelectorAll('.dot-indicator').forEach(el => el.classList.replace('bg-zinc-600', 'bg-zinc-300'));
+            document.querySelectorAll('.date-badge').forEach(el => {
+                el.classList.replace('bg-zinc-800/50', 'bg-zinc-50');
+                el.classList.replace('border-zinc-700', 'border-zinc-200');
+            });
+            document.querySelectorAll('.date-text').forEach(el => el.classList.replace('text-zinc-400', 'text-zinc-500'));
+            document.querySelectorAll('.item-desc').forEach(el => {
+                el.classList.replace('text-zinc-400', 'text-zinc-600');
+                el.classList.replace('border-zinc-700', 'border-zinc-200');
+            });
+            
+            document.querySelector('.footer-bar').classList.replace('bg-[#0f1115]/90', 'bg-white/90');
+            document.querySelector('.footer-bar').classList.replace('border-zinc-800', 'border-zinc-200');
+            document.querySelector('.sys-text').classList.replace('text-zinc-300', 'text-zinc-700');
+            document.querySelector('.status-badge').classList.replace('bg-green-500/10', 'bg-green-50');
+            document.querySelector('.status-badge').classList.replace('border-green-500/30', 'border-green-200');
+            document.querySelector('.comm-text').classList.replace('text-zinc-400', 'text-zinc-700');
+            
+            const docBtn = document.querySelector('.doc-btn');
+            if(docBtn) {
+                docBtn.classList.replace('bg-zinc-900/50', 'bg-zinc-50');
+                docBtn.classList.replace('border-zinc-700', 'border-zinc-300');
+                docBtn.classList.replace('text-zinc-400', 'text-zinc-600');
+            }
+            
+            const secureBtn = document.querySelector('.secure-btn');
+            if(secureBtn) {
+                secureBtn.classList.replace('bg-red-900/20', 'bg-red-50');
+                secureBtn.classList.replace('border-red-500/30', 'border-red-200');
+            }
+            
+            const secureBtnAlt = document.querySelector('.secure-btn-alt');
+            if(secureBtnAlt) {
+                secureBtnAlt.classList.replace('bg-blue-900/20', 'bg-blue-50');
+                secureBtnAlt.classList.replace('border-blue-500/30', 'border-blue-200');
+            }
+        }
+
+        function initParallax() {
+            const bg = document.getElementById('parallax-bg');
+            if(!bg) return;
+            for(let i=0; i<12; i++) {
+                const icon = document.createElement('i');
+                icon.className = i % 2 === 0 ? 'ph ph-scales text-[8rem] md:text-[15rem] text-zinc-400/20' : 'ph ph-target text-[8rem] md:text-[15rem] text-zinc-400/20';
+                bg.appendChild(icon);
+            }
+        }
+
+        function initMagnetic() {
+            document.querySelectorAll('.magnetic').forEach(elem => {
+                elem.addEventListener('mousemove', (e) => {
+                    const rect = elem.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    elem.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
+                });
+                elem.addEventListener('mouseleave', () => {
+                    elem.style.transform = `translate(0px, 0px)`;
+                });
+            });
+        }
+
+        document.addEventListener('mousemove', (e) => {
+            if(isBooting) return;
+            
+            mouseX = e.clientX; mouseY = e.clientY;
+            
+            const cursorPrimary = document.getElementById('cursor-primary');
+            const coordDisplay = document.getElementById('coord-display');
+            const parallaxBg = document.getElementById('parallax-bg');
+            
+            if(cursorPrimary) {
+                cursorPrimary.style.left = `${mouseX}px`;
+                cursorPrimary.style.top = `${mouseY}px`;
+            }
+            if(coordDisplay) {
+                coordDisplay.style.left = `${mouseX}px`;
+                coordDisplay.style.top = `${mouseY}px`;
+                coordDisplay.innerText = `X:${mouseX} Y:${mouseY}`;
+            }
+            
+            if(parallaxBg) {
+                const px = (mouseX - window.innerWidth/2) * -0.02;
+                const py = (mouseY - window.innerHeight/2) * -0.02;
+                parallaxBg.style.transform = `translate(${px}px, ${py}px)`;
+            }
+
+            // Interactive state check for crosshair spin
+            const target = e.target;
+            const isClickable = window.getComputedStyle(target).cursor === 'pointer' || target.closest('button') || target.classList.contains('redacted');
+            if(cursorPrimary) {
+                cursorPrimary.style.transform = isClickable 
+                    ? 'translate(-50%, -50%) scale(1.5) rotate(45deg)' 
+                    : 'translate(-50%, -50%) scale(1) rotate(0deg)';
+                cursorPrimary.style.color = isClickable ? '#ef4444' : 'white';
+            }
+        });
+
+        // Delay laser follower
+        setInterval(() => {
+            if(isBooting) return;
+            delayedMouseX += (mouseX - delayedMouseX) * 0.2;
+            delayedMouseY += (mouseY - delayedMouseY) * 0.2;
+            const cursorLaser = document.getElementById('cursor-laser');
+            if(cursorLaser) {
+                cursorLaser.style.left = `${delayedMouseX}px`;
+                cursorLaser.style.top = `${delayedMouseY}px`;
+            }
+        }, 16);
+
+        document.addEventListener('click', (e) => {
+            if(isBooting) return;
+            
+            playImpactSound();
+
+            // Trigger Recoil Shake
+            const mainApp = document.getElementById('main-app');
+            if (mainApp) {
+                mainApp.classList.remove('shake-active'); 
+                void mainApp.offsetWidth; // Force a browser reflow to restart animation on rapid clicks
+                mainApp.classList.add('shake-active');
+                
+                setTimeout(() => {
+                    mainApp.classList.remove('shake-active');
+                }, 150);
+            }
+
+            const impact = document.createElement('div');
+            impact.className = 'fixed pointer-events-none z-40';
+            impact.style.left = `${e.clientX}px`;
+            impact.style.top = `${e.clientY}px`;
+            const rot = Math.random() * 360;
+            impact.style.transform = `translate(-50%, -50%) rotate(${rot}deg)`;
+            
+            impact.innerHTML = `
+                <div class="absolute inset-0 bg-yellow-500 rounded-full blur-sm" style="animation: flash 0.1s ease-out forwards"></div>
+                <div class="w-6 h-6 bg-zinc-900 rounded-full border border-zinc-700 relative" style="animation: fade-out 2s ease-out forwards">
+                    <div class="absolute inset-0 border-t border-r border-zinc-500 rounded-full transform rotate-45 scale-110"></div>
+                </div>
+            `;
+            
+            document.body.appendChild(impact);
+            setTimeout(() => { if(impact.parentNode) impact.remove(); }, 2000);
+        });
+
+        function initializeApplication() {
+            if (window.appInitialized) return;
+            window.appInitialized = true;
+            
+            bootInterval = setInterval(renderBootText, 350);
+            initSkills();
+            renderTabs();
+            initMagnetic();
+        }
+
+        // Bulletproof initialization regardless of load state
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApplication);
+        } else {
+            initializeApplication();
+        }
+    </script>
+</body>
+</html>
