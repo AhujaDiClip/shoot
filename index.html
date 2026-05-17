@@ -116,6 +116,18 @@
         .magnetic {
             transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
+
+        /* Easter Egg Target Animation */
+        @keyframes dartingEye {
+            0% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(25px, -15px) scale(1.1); }
+            50% { transform: translate(-15px, 25px) scale(0.9); }
+            75% { transform: translate(-25px, -20px) scale(1.2); }
+            100% { transform: translate(0, 0) scale(1); }
+        }
+        .animate-darting {
+            animation: dartingEye 0.6s infinite alternate ease-in-out;
+        }
     </style>
 </head>
 <body class="antialiased text-zinc-900 overflow-hidden">
@@ -141,11 +153,11 @@
     <!-- Microfilm Noise -->
     <div class="noise-overlay"></div>
 
-    <div id="cursor-primary" class="fixed pointer-events-none z-[60] -translate-x-1/2 -translate-y-1/2 mix-blend-difference transition-transform duration-75">
+    <div id="cursor-primary" class="fixed pointer-events-none z-[150] -translate-x-1/2 -translate-y-1/2 mix-blend-difference transition-transform duration-75">
         <i class="ph ph-crosshair text-3xl text-white opacity-80"></i>
     </div>
-    <div id="cursor-laser" class="fixed pointer-events-none z-[60] w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,1)] -translate-x-1/2 -translate-y-1/2 transition-all duration-100 ease-out"></div>
-    <div id="coord-display" class="fixed pointer-events-none z-[60] text-[8px] font-mono text-red-500 ml-4 mt-4 transition-all duration-75"></div>
+    <div id="cursor-laser" class="fixed pointer-events-none z-[150] w-2 h-2 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,1)] -translate-x-1/2 -translate-y-1/2 transition-all duration-100 ease-out"></div>
+    <div id="coord-display" class="fixed pointer-events-none z-[150] text-[8px] font-mono text-red-500 ml-4 mt-4 transition-all duration-75"></div>
 
     <!-- Focus Mode Vignette -->
     <div id="focus-vignette" class="fixed inset-0 pointer-events-none z-30 opacity-0 transition-opacity duration-1000" style="background: radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.95) 100%);">
@@ -260,6 +272,65 @@
         </footer>
     </div>
 
+    <!-- EASTER EGG CONTAINER -->
+    <div id="ee-container" class="fixed inset-0 z-[100] bg-zinc-950/95 hidden flex-col items-center justify-center text-white font-mono p-6 backdrop-blur-md">
+        <!-- Persistent Back Button -->
+        <button onclick="exitEasterEgg(event)" class="absolute top-6 left-6 flex items-center gap-2 text-red-500 hover:text-red-400 transition-colors z-[120] group font-bold tracking-widest text-sm bg-zinc-900/80 px-4 py-2 rounded border border-red-900/50 cursor-none">
+            <i class="ph ph-arrow-left text-xl group-hover:-translate-x-1 transition-transform"></i> BACK TO CV
+        </button>
+
+        <!-- Screen 1: Intro -->
+        <div id="ee-s1" class="text-center space-y-8 max-w-2xl animate-fadeIn">
+            <h2 class="text-5xl md:text-7xl font-serif text-red-600 font-black tracking-tighter">TRIGGER HAPPY?</h2>
+            <p class="text-zinc-400 text-lg">You wanna shoot? Click play.</p>
+            <button onclick="startEEGame(event)" class="px-10 py-4 bg-red-600 text-white font-bold tracking-widest hover:bg-red-500 transition-colors rounded shadow-[0_0_20px_rgba(239,68,68,0.5)] cursor-none text-lg">PLAY MINIGAME</button>
+        </div>
+
+        <!-- Screen 2: Game -->
+        <div id="ee-s2" class="hidden w-full h-full relative overflow-hidden animate-fadeIn">
+            <div class="absolute top-6 right-6 text-xl text-red-500 font-bold tracking-widest bg-zinc-900/80 px-6 py-3 rounded border border-red-900/50 z-[110]">
+                SCORE: <span id="ee-score" class="text-white">0</span> <span class="mx-2 text-zinc-600">|</span> TIME: <span id="ee-time" class="text-white">15</span>s
+            </div>
+            <div id="ee-game-area" class="absolute inset-0 top-24 pointer-events-none"></div>
+        </div>
+
+        <!-- Screen 3: Law Class -->
+        <div id="ee-s3" class="hidden text-center space-y-6 max-w-3xl w-full animate-fadeIn mt-12 relative z-[110]">
+            <h2 class="text-3xl font-serif text-red-600 font-black">TIME'S UP. SCORE: <span id="ee-final-score" class="text-white">0</span></h2>
+            <p class="text-zinc-300 text-lg border-b border-zinc-800 pb-6">Impressive target acquisition. But how about going to a law class?</p>
+            
+            <div class="bg-zinc-900 border border-zinc-700 p-6 rounded-md text-left text-zinc-400 space-y-4 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-1 h-full bg-red-600"></div>
+                <p class="text-white font-bold font-serif text-xl border-b border-zinc-700 pb-2 flex items-center gap-2">
+                    <i class="ph ph-scales text-red-500"></i> ETHICAL DILEMMA
+                </p>
+                <p class="text-sm md:text-base leading-relaxed text-zinc-300">Your client confesses to a gruesome murder. An innocent person is currently on death row for this exact crime, scheduled for execution tomorrow. Your client strictly invokes Attorney-Client Privilege and absolutely forbids you from speaking.</p>
+                <p class="text-red-400 font-bold text-sm tracking-widest uppercase mt-4">What is your move, Counselor?</p>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-3 mt-4">
+                <button onclick="showEEResult(1, event)" class="p-4 border border-zinc-700 hover:border-red-500 hover:bg-zinc-800/50 transition-colors text-left text-sm cursor-none text-zinc-300 hover:text-white rounded flex items-center gap-3 group">
+                    <span class="text-red-500 font-bold opacity-50 group-hover:opacity-100 text-lg">A</span> Break privilege to save the innocent person.
+                </button>
+                <button onclick="showEEResult(2, event)" class="p-4 border border-zinc-700 hover:border-red-500 hover:bg-zinc-800/50 transition-colors text-left text-sm cursor-none text-zinc-300 hover:text-white rounded flex items-center gap-3 group">
+                    <span class="text-red-500 font-bold opacity-50 group-hover:opacity-100 text-lg">B</span> Remain silent. Uphold the sacred oath of privilege.
+                </button>
+                <button onclick="showEEResult(3, event)" class="p-4 border border-zinc-700 hover:border-red-500 hover:bg-zinc-800/50 transition-colors text-left text-sm cursor-none text-zinc-300 hover:text-white rounded flex items-center gap-3 group">
+                    <span class="text-red-500 font-bold opacity-50 group-hover:opacity-100 text-lg">C</span> Leak the information anonymously to the press.
+                </button>
+            </div>
+        </div>
+
+        <!-- Screen 4: Result -->
+        <div id="ee-s4" class="hidden text-center space-y-8 max-w-2xl w-full animate-fadeIn relative z-[110]">
+            <h2 class="text-4xl font-serif text-red-600 font-black">THE VERDICT</h2>
+            <div id="ee-result-text" class="text-lg text-zinc-300 bg-zinc-900 border border-zinc-700 p-8 rounded-md leading-relaxed shadow-2xl text-left"></div>
+            <button onclick="exitEasterEgg(event)" class="px-8 py-3 border border-red-600 text-red-500 font-bold tracking-widest hover:bg-red-600 hover:text-white transition-colors rounded cursor-none inline-flex items-center gap-2 mt-4">
+                <i class="ph ph-arrow-left"></i> RETURN TO DOSSIER
+            </button>
+        </div>
+    </div>
+
     <script>
         // State Variables
         let isBooting = true;
@@ -269,6 +340,12 @@
         let mouseX = 0, mouseY = 0;
         let delayedMouseX = 0, delayedMouseY = 0;
         let bootInterval;
+
+        let shootCount = 0;
+        let eeActive = false;
+        let eeScore = 0;
+        let eeTime = 15;
+        let eeInterval, eeTimer;
 
         // Data Models
         const skillsData = [
@@ -325,82 +402,82 @@
             });
         }
 
-    function renderBootText() {
-        const bootContainer = document.getElementById('boot-text-container');
-        if (!bootContainer) {
-            if (bootInterval) clearInterval(bootInterval);
-            return; 
-        }
+        function renderBootText() {
+            const bootContainer = document.getElementById('boot-text-container');
+            if (!bootContainer) {
+                if (bootInterval) clearInterval(bootInterval);
+                return; 
+            }
 
-        if (bootStep < bootSequence.length) {
-            const text = bootSequence[bootStep];
-            const isLast = bootStep === bootSequence.length - 1;
-            const div = document.createElement('div');
-            div.className = 'flex items-center gap-3 text-xs md:text-sm font-mono animate-fadeIn';
-            
-            const timeStr = new Date().toISOString().split('T')[1].slice(0,-1);
-            div.innerHTML = `<span class="text-zinc-600">[${timeStr}]</span> <span class="${isLast ? 'text-green-500 font-bold' : 'text-amber-600/80'}">${text}</span>`;
-            
-            bootContainer.appendChild(div);
-            bootStep++;
-        } else {
-            clearInterval(bootInterval);
-            const cursor = document.getElementById('boot-cursor');
-            if (cursor) cursor.style.display = 'none';
-            
-            // --- NEW CINEMATIC ANIMATION LOGIC ---
-            setTimeout(() => {
-                const bootContent = document.getElementById('boot-content');
-                if(bootContent) bootContent.style.opacity = '0'; // Fade out terminal text
-
+            if (bootStep < bootSequence.length) {
+                const text = bootSequence[bootStep];
+                const isLast = bootStep === bootSequence.length - 1;
+                const div = document.createElement('div');
+                div.className = 'flex items-center gap-3 text-xs md:text-sm font-mono animate-fadeIn';
+                
+                const timeStr = new Date().toISOString().split('T')[1].slice(0,-1);
+                div.innerHTML = `<span class="text-zinc-600">[${timeStr}]</span> <span class="${isLast ? 'text-green-500 font-bold' : 'text-amber-600/80'}">${text}</span>`;
+                
+                bootContainer.appendChild(div);
+                bootStep++;
+            } else {
+                clearInterval(bootInterval);
+                const cursor = document.getElementById('boot-cursor');
+                if (cursor) cursor.style.display = 'none';
+                
+                // --- NEW CINEMATIC ANIMATION LOGIC ---
                 setTimeout(() => {
-                    const heroIntro = document.getElementById('hero-intro');
-                    const heroText = document.getElementById('hero-text');
-                    const heroSub = document.getElementById('hero-sub');
-                    
-                    if(heroIntro) {
-                        heroIntro.classList.remove('hidden');
-                        // Force reflow to ensure CSS transitions run
-                        void heroIntro.offsetWidth;
-                        
-                        heroIntro.classList.remove('opacity-0');
-                        heroText.classList.remove('scale-150', 'blur-xl');
-                        heroText.classList.add('scale-100', 'blur-none');
-                        heroSub.classList.remove('opacity-0');
-                    }
-                    
-                    // Hold the giant name on screen, then transition to app
-                    setTimeout(() => {
-                        if(heroIntro) heroIntro.classList.add('opacity-0');
-                        
-                        const bootScreen = document.getElementById('boot-screen');
-                        const mainApp = document.getElementById('main-app');
-                        const stamp = document.getElementById('declassified-stamp');
-                        
-                        if(bootScreen) {
-                            bootScreen.classList.add('opacity-0');
-                            setTimeout(() => {
-                                bootScreen.remove();
-                                if(heroIntro) heroIntro.remove();
-                            }, 1000);
-                        }
-                        if(mainApp) {
-                            mainApp.classList.remove('opacity-0', 'pointer-events-none');
-                            isBooting = false;
-                            
-                            setTimeout(() => {
-                                if(stamp) stamp.classList.add('animate-stamp');
-                                initParallax();
-                            }, 500);
-                        }
-                    }, 2500); // Time to look at the giant name
-                    
-                }, 500); // Delay after fading out terminal
-            }, 400); // Short pause after "ACCESS GRANTED"
-        }
-    }
+                    const bootContent = document.getElementById('boot-content');
+                    if(bootContent) bootContent.style.opacity = '0'; // Fade out terminal text
 
-    function initSkills() {
+                    setTimeout(() => {
+                        const heroIntro = document.getElementById('hero-intro');
+                        const heroText = document.getElementById('hero-text');
+                        const heroSub = document.getElementById('hero-sub');
+                        
+                        if(heroIntro) {
+                            heroIntro.classList.remove('hidden');
+                            // Force reflow to ensure CSS transitions run
+                            void heroIntro.offsetWidth;
+                            
+                            heroIntro.classList.remove('opacity-0');
+                            heroText.classList.remove('scale-150', 'blur-xl');
+                            heroText.classList.add('scale-100', 'blur-none');
+                            heroSub.classList.remove('opacity-0');
+                        }
+                        
+                        // Hold the giant name on screen, then transition to app
+                        setTimeout(() => {
+                            if(heroIntro) heroIntro.classList.add('opacity-0');
+                            
+                            const bootScreen = document.getElementById('boot-screen');
+                            const mainApp = document.getElementById('main-app');
+                            const stamp = document.getElementById('declassified-stamp');
+                            
+                            if(bootScreen) {
+                                bootScreen.classList.add('opacity-0');
+                                setTimeout(() => {
+                                    bootScreen.remove();
+                                    if(heroIntro) heroIntro.remove();
+                                }, 1000);
+                            }
+                            if(mainApp) {
+                                mainApp.classList.remove('opacity-0', 'pointer-events-none');
+                                isBooting = false;
+                                
+                                setTimeout(() => {
+                                    if(stamp) stamp.classList.add('animate-stamp');
+                                    initParallax();
+                                }, 500);
+                            }
+                        }, 2500); // Time to look at the giant name
+                        
+                    }, 500); // Delay after fading out terminal
+                }, 400); // Short pause after "ACCESS GRANTED"
+            }
+        }
+
+        function initSkills() {
             const skillsContainer = document.getElementById('skills-container');
             if(!skillsContainer) return; 
             skillsContainer.innerHTML = ''; 
@@ -778,6 +855,105 @@
             }
         }
 
+        function startEasterEgg() {
+            eeActive = true;
+            document.getElementById('ee-container').classList.remove('hidden');
+            document.getElementById('ee-container').classList.add('flex');
+            switchEEScreen('ee-s1');
+        }
+
+        function exitEasterEgg(e) {
+            eeActive = false;
+            shootCount = 0;
+            clearInterval(eeInterval);
+            clearInterval(eeTimer);
+            document.getElementById('ee-container').classList.add('hidden');
+            document.getElementById('ee-container').classList.remove('flex');
+            document.getElementById('ee-game-area').innerHTML = ''; 
+        }
+
+        function switchEEScreen(screenId) {
+            ['ee-s1', 'ee-s2', 'ee-s3', 'ee-s4'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function startEEGame(e) {
+            switchEEScreen('ee-s2');
+            eeScore = 0;
+            eeTime = 15;
+            document.getElementById('ee-score').innerText = eeScore;
+            document.getElementById('ee-time').innerText = eeTime;
+            document.getElementById('ee-game-area').innerHTML = '';
+
+            eeTimer = setInterval(() => {
+                eeTime--;
+                document.getElementById('ee-time').innerText = eeTime;
+                if(eeTime <= 0) {
+                    endEEGame();
+                }
+            }, 1000);
+
+            eeInterval = setInterval(() => {
+                spawnEye();
+            }, 650); // Fast spawn rate for challenge
+        }
+
+        function spawnEye() {
+            const area = document.getElementById('ee-game-area');
+            if(!area) return;
+
+            const eye = document.createElement('i');
+            eye.className = 'ph ph-eye text-[3.5rem] text-red-500 absolute cursor-none transition-all pointer-events-auto hover:text-white drop-shadow-[0_0_10px_rgba(239,68,68,0.8)] animate-darting';
+            
+            // Safe boundaries inside the container
+            const maxX = area.clientWidth - 100;
+            const maxY = area.clientHeight - 100;
+            const x = 30 + Math.random() * maxX;
+            const y = 30 + Math.random() * maxY;
+            
+            eye.style.left = `${x}px`;
+            eye.style.top = `${y}px`;
+
+            eye.onmousedown = (e) => {
+                eeScore++;
+                document.getElementById('ee-score').innerText = eeScore;
+                eye.style.transform = 'scale(0) rotate(180deg)';
+                eye.style.opacity = '0';
+                setTimeout(() => eye.remove(), 150);
+            };
+
+            area.appendChild(eye);
+            
+            // Vanish automatically
+            setTimeout(() => {
+                if(eye.parentNode) {
+                    eye.style.transform = 'scale(0)';
+                    setTimeout(() => eye.remove(), 150);
+                }
+            }, 900 + Math.random() * 1200);
+        }
+
+        function endEEGame() {
+            clearInterval(eeInterval);
+            clearInterval(eeTimer);
+            document.getElementById('ee-final-score').innerText = eeScore;
+            switchEEScreen('ee-s3');
+        }
+
+        function showEEResult(choice, e) {
+            switchEEScreen('ee-s4');
+            const resText = document.getElementById('ee-result-text');
+            if(choice === 1) {
+                resText.innerHTML = "You broke privilege. The innocent person is exonerated and lives, but you are <strong>disbarred for life</strong> and facing severe civil penalties.<br><br><span class='text-red-500 text-xl font-bold border-l-4 border-red-500 pl-4 mt-6 block'>Moral Victory Achieved. Career Destroyed.</span>";
+            } else if (choice === 2) {
+                resText.innerHTML = "You maintained privilege. The innocent person is executed. You remain legally untouchable and ethically compliant with the Bar, but your soul bears the weight of a life lost.<br><br><span class='text-amber-500 text-xl font-bold border-l-4 border-amber-500 pl-4 mt-6 block'>Legally Flawless. Morally Devastating.</span>";
+            } else {
+                resText.innerHTML = "You attempted to leak it anonymously. The leak is rapidly traced back to you. You are disbarred, the evidence is deemed inadmissible 'fruit of the poisonous tree', and the execution proceeds regardless.<br><br><span class='text-zinc-500 text-xl font-bold border-l-4 border-zinc-500 pl-4 mt-6 block'>A Total Failure. You lose everything.</span>";
+            }
+        }
+
         function initParallax() {
             const bg = document.getElementById('parallax-bg');
             if(!bg) return;
@@ -853,11 +1029,21 @@
         document.addEventListener('click', (e) => {
             if(isBooting) return;
             
+            // Easter Egg Trigger Logic (Don't trigger if clicking buttons or links)
+            if(!eeActive && !e.target.closest('button') && !e.target.closest('a')) {
+                shootCount++;
+                if(shootCount >= 15) {
+                    startEasterEgg();
+                    shootCount = 0; // reset
+                    return; 
+                }
+            }
+
             playImpactSound();
 
             // Trigger Recoil Shake
             const mainApp = document.getElementById('main-app');
-            if (mainApp) {
+            if (mainApp && !eeActive) {
                 mainApp.classList.remove('shake-active'); 
                 void mainApp.offsetWidth; // Force a browser reflow to restart animation on rapid clicks
                 mainApp.classList.add('shake-active');
@@ -867,8 +1053,17 @@
                 }, 150);
             }
 
+            // Also shake Easter Egg container if active
+            const eeContainer = document.getElementById('ee-container');
+            if (eeActive && eeContainer && !eeContainer.classList.contains('hidden')) {
+                eeContainer.classList.remove('shake-active');
+                void eeContainer.offsetWidth;
+                eeContainer.classList.add('shake-active');
+                setTimeout(() => eeContainer.classList.remove('shake-active'), 150);
+            }
+
             const impact = document.createElement('div');
-            impact.className = 'fixed pointer-events-none z-40';
+            impact.className = 'fixed pointer-events-none z-[130]'; // Ensure it's above EE container
             impact.style.left = `${e.clientX}px`;
             impact.style.top = `${e.clientY}px`;
             const rot = Math.random() * 360;
